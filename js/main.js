@@ -309,3 +309,63 @@ if (field instanceof HTMLCanvasElement && !reduceMotion) {
     paint();
   }
 }
+
+const skillPanel = document.querySelector("#skill-panel");
+const skillKicker = document.querySelector("#skill-panel-kicker");
+const skillTitle = document.querySelector("#skill-panel-title");
+const skillBody = document.querySelector("#skill-panel-body");
+const skillsSection = document.querySelector("#skills");
+
+if (skillPanel && skillKicker && skillTitle && skillBody) {
+  const clearActive = () => {
+    document.querySelectorAll(".skill").forEach((item) => {
+      item.classList.remove("is-active");
+      item.querySelector(".skill-toggle")?.setAttribute("aria-expanded", "false");
+    });
+  };
+
+  const showDetail = (kicker, title, body, active) => {
+    skillKicker.textContent = kicker;
+    skillTitle.textContent = title;
+    skillBody.textContent = body;
+    skillPanel.classList.add("is-open");
+    skillPanel.setAttribute("aria-hidden", "false");
+    clearActive();
+    active?.classList.add("is-active");
+    active?.querySelector(".skill-toggle")?.setAttribute("aria-expanded", "true");
+  };
+
+  const hideDetail = () => {
+    skillPanel.classList.remove("is-open");
+    skillPanel.setAttribute("aria-hidden", "true");
+    clearActive();
+  };
+
+  const bindSection = (section, selector, read) => {
+    if (!section) return;
+    section.addEventListener("pointerover", (event) => {
+      const item = event.target instanceof Element ? event.target.closest(selector) : null;
+      if (!item || !section.contains(item)) return;
+      const detail = read(item);
+      if (detail) showDetail(detail.kicker, detail.title, detail.body, item);
+    });
+    section.addEventListener("pointerleave", hideDetail);
+    section.addEventListener("focusin", (event) => {
+      const item = event.target instanceof Element ? event.target.closest(selector) : null;
+      if (!item || !section.contains(item)) return;
+      const detail = read(item);
+      if (detail) showDetail(detail.kicker, detail.title, detail.body, item);
+    });
+    section.addEventListener("focusout", (event) => {
+      const next = event.relatedTarget;
+      if (!(next instanceof Node) || !section.contains(next)) hideDetail();
+    });
+  };
+
+  bindSection(skillsSection, ".skill", (item) => {
+    const button = item.querySelector(".skill-toggle");
+    const detail = item.querySelector(".skill-more");
+    if (!button || !detail) return null;
+    return { kicker: "Skill", title: button.textContent.trim(), body: detail.textContent.trim() };
+  });
+}
